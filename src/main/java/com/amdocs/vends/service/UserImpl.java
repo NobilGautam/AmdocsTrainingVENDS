@@ -67,7 +67,7 @@ public class UserImpl implements UserIntf {
                     System.out.println("Added property successfully!");
                     break;
                 case 2:
-                    userId = -1;
+                    userId = LoggedInUser.getUserId();
                     String name;
                     String username;
                     String role = Role.TENANT.getValue();
@@ -105,12 +105,43 @@ public class UserImpl implements UserIntf {
         } while (true);
     }
 
+    public void showHomepage() {
+        do {
+            System.out.println("1. SignUp");
+            System.out.println("2. Login");
+            System.out.println("3. Exit Program");
+            System.out.print("Enter choice between 1-3: ");
+            int choice = scanner.nextInt();
+            switch (choice) {
+                case 1:
+                    break;
+                case 2:
+                    String username;
+                    String password;
+                    System.out.println("Enter username: ");
+                    scanner.nextLine();
+                    username = scanner.nextLine();
+                    System.out.println("Enter password: ");
+                    password = scanner.nextLine();
+                    int successCode = login(username, password);
+                    if (successCode == 1 && LoggedInUser.getRole().equals(Role.ADMIN)) {
+                        showAdminHomepage();
+                    } else {
+
+                    }
+                    break;
+                case 3:
+                    System.exit(0);
+            }
+        } while (true);
+    }
+
     @Override
     public Integer addUser(User user) throws DuplicateUsernameException {
         try {
             Connection connection = JDBC.getConnection();
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = " + user.getUsername());
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = '" + user.getUsername()+"'");
             if (resultSet.getFetchSize() > 0) {
                 throw new DuplicateUsernameException("Username already exists!");
             }
@@ -129,15 +160,15 @@ public class UserImpl implements UserIntf {
     }
 
     @Override
-    public int Login(String username, String password) {
+    public int login(String username, String password) {
         try {
             Connection connection = JDBC.getConnection();
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = " + username);
-            if (resultSet.getFetchSize() == 0) {
-                System.out.println("User with above username does not exist! Check credentials and try again");
-                return 0;
-            }
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = '" + username + "'");
+//            if (resultSet.getFetchSize() == 0) {
+//                System.out.println("User with above username does not exist! Check credentials and try again");
+//                return 0;
+//            }
             while (resultSet.next()) {
                 String storedPassword = resultSet.getString(5);
                 if (!storedPassword.equals(password)) {
@@ -146,6 +177,7 @@ public class UserImpl implements UserIntf {
                 }
                 LoggedInUser.setUserId(Integer.parseInt(resultSet.getString(1)));
                 LoggedInUser.setName(resultSet.getString(3));
+                LoggedInUser.setRole(resultSet.getString(2).toUpperCase());
                 return 1;
             }
         } catch (Exception e) {
@@ -153,6 +185,4 @@ public class UserImpl implements UserIntf {
         }
         return 0;
     }
-
-
 }

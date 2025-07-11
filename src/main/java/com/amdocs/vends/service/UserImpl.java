@@ -1,10 +1,17 @@
 package com.amdocs.vends.service;
 
 import com.amdocs.vends.bean.Property;
+import com.amdocs.vends.bean.Tenant;
+import com.amdocs.vends.bean.User;
+import com.amdocs.vends.dao.JDBC;
 import com.amdocs.vends.interfaces.UserIntf;
 import com.amdocs.vends.utils.enums.PropertyType;
+import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Scanner;
 
 public class UserImpl implements UserIntf {
@@ -13,6 +20,7 @@ public class UserImpl implements UserIntf {
 
     public void showAdminHomepage() {
         PropertyImpl propertyService = new PropertyImpl();
+        TenantImpl tenantService = new TenantImpl();
         System.out.println("Welcome, Mr. " + LoggedInUser.getName());
         System.out.println();
         do {
@@ -57,8 +65,55 @@ public class UserImpl implements UserIntf {
                     propertyService.addProperty(property);
                     System.out.println("Added property successfully!");
                     break;
+                case 2:
+                    String name;
+                    String username;
+                    String role = Role.TENANT.getValue();
+                    String passwordHash;
+                    String phoneNumber;
+                    Integer propertyId;
+                    Float rent;
+                    scanner.nextLine();
+                    System.out.println("Enter name of tenant: ");
+                    name = scanner.nextLine();
+                    System.out.println("Enter username of tenant: ");
+                    username = scanner.nextLine();
+                    System.out.println("Enter temporary password of tenant: ");
+                    passwordHash = scanner.nextLine();
+                    System.out.println("Enter phone number of tenant: ");
+                    phoneNumber = scanner.nextLine();
+                    User user = new User(role, name, username, passwordHash, true, phoneNumber);
+                    userId = addUser(user);
+                    Boolean isCurrentlyLivingThere = true;
+                    System.out.println("Enter property Id: ");
+                    propertyId = scanner.nextInt();
+                    System.out.println("Enter rent: ");
+                    rent = scanner.nextFloat();
+                    Tenant tenant = new Tenant(userId, propertyId, rent, isCurrentlyLivingThere);
+                    tenantService.addTenant(tenant);
+                    System.out.println("Added tenant successfully!");
+                    break;
                 default: System.exit(0);
             }
         } while (true);
+    }
+
+    @Override
+    public Integer addUser(User user) {
+        try {
+            Connection connection = JDBC.getConnection();
+            Statement statement = connection.createStatement();
+            int result = statement.executeUpdate("INSERT INTO users (role, name, username, password_hash, first_login, phone_number) VALUES ('"+user.getRole()+"','"+user.getName()+"','"+user.getUsername()+"','"+user.getPasswordHash()+"',"+user.getFirstLogin()+",'"+user.getPhoneNumber()+"')");
+            if (result == 0) {
+                System.out.println("Failed to create user in database!");
+            }
+            ResultSet resultSet = statement.executeQuery("SELECT MAX(id) FROM users");
+            while(resultSet.next()) {
+                return Integer.parseInt(resultSet.getString(1));
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to create user in database! Reason: "  + e.getMessage());
+        }
+        return 0;
     }
 }

@@ -1,10 +1,12 @@
 package com.amdocs.vends.utils.singleton;
 
+import com.amdocs.vends.utils.enums.Role;
+
 public class LoggedInUser {
 
     private static String name = null;
-    private static String username = null;
-    private static String role = null;
+    private static Integer userId = null;
+    private static Role role = null;
 
     private LoggedInUser() {} // Private constructor to prevent instantiation
 
@@ -19,31 +21,20 @@ public class LoggedInUser {
     public static void setName(String name) {
         LoggedInUser.name = name;
     }
-
-    public static String getUsername() {
-        return username;
+    public static Integer getUserId() {
+        return userId;
     }
 
-    public static void setUsername(String username) {
-        LoggedInUser.username = username;
-    }
-
-    public static String getRole() {
-        return role;
+    public static void setUserId(Integer userId) {
+        LoggedInUser.userId = userId;
     }
 
     public static void setRole(String role) {
-        LoggedInUser.role = role;
+        LoggedInUser.role = Role.valueOf(role);
     }
 
-    public static void clear() {
-        name = null;
-        username = null;
-        role = null;
-    }
-
-    public static boolean isLoggedIn() {
-        return username != null;
+    public static Role getRole() {
+        return role;
     }
 }
 

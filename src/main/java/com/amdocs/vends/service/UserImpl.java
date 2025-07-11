@@ -7,6 +7,7 @@ import com.amdocs.vends.dao.JDBC;
 import com.amdocs.vends.interfaces.UserIntf;
 import com.amdocs.vends.utils.enums.PropertyType;
 import com.amdocs.vends.utils.enums.Role;
+import com.amdocs.vends.utils.exceptions.DuplicateUsernameException;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 
 import java.sql.Connection;
@@ -66,6 +67,7 @@ public class UserImpl implements UserIntf {
                     System.out.println("Added property successfully!");
                     break;
                 case 2:
+                    userId = -1;
                     String name;
                     String username;
                     String role = Role.TENANT.getValue();
@@ -83,7 +85,12 @@ public class UserImpl implements UserIntf {
                     System.out.println("Enter phone number of tenant: ");
                     phoneNumber = scanner.nextLine();
                     User user = new User(role, name, username, passwordHash, true, phoneNumber);
-                    userId = addUser(user);
+                    try {
+                        userId = addUser(user);
+                    } catch (DuplicateUsernameException e) {
+                        showAdminHomepage();
+                        System.err.println(e.getMessage());
+                    }
                     Boolean isCurrentlyLivingThere = true;
                     System.out.println("Enter property Id: ");
                     propertyId = scanner.nextInt();
@@ -99,21 +106,53 @@ public class UserImpl implements UserIntf {
     }
 
     @Override
-    public Integer addUser(User user) {
+    public Integer addUser(User user) throws DuplicateUsernameException {
         try {
             Connection connection = JDBC.getConnection();
             Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = " + user.getUsername());
+            if (resultSet.getFetchSize() > 0) {
+                throw new DuplicateUsernameException("Username already exists!");
+            }
             int result = statement.executeUpdate("INSERT INTO users (role, name, username, password_hash, first_login, phone_number) VALUES ('"+user.getRole()+"','"+user.getName()+"','"+user.getUsername()+"','"+user.getPasswordHash()+"',"+user.getFirstLogin()+",'"+user.getPhoneNumber()+"')");
             if (result == 0) {
                 System.out.println("Failed to create user in database!");
             }
-            ResultSet resultSet = statement.executeQuery("SELECT MAX(id) FROM users");
+            resultSet = statement.executeQuery("SELECT MAX(id) FROM users");
             while(resultSet.next()) {
                 return Integer.parseInt(resultSet.getString(1));
             }
         } catch (Exception e) {
             System.err.println("Failed to create user in database! Reason: "  + e.getMessage());
         }
+        return -1;
+    }
+
+    @Override
+    public int Login(String username, String password) {
+        try {
+            Connection connection = JDBC.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = " + username);
+            if (resultSet.getFetchSize() == 0) {
+                System.out.println("User with above username does not exist! Check credentials and try again");
+                return 0;
+            }
+            while (resultSet.next()) {
+                String storedPassword = resultSet.getString(5);
+                if (!storedPassword.equals(password)) {
+                    System.out.println("Invalid Password! Check credentials and try again");
+                    return 0;
+                }
+                LoggedInUser.setUserId(Integer.parseInt(resultSet.getString(1)));
+                LoggedInUser.setName(resultSet.getString(3));
+                return 1;
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         return 0;
     }
+
+
 }

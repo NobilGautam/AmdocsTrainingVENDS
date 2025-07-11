@@ -5,11 +5,15 @@ public class LoggedInUser {
 
     private LoggedInUser() {}
 
-    private static String getName() {
+    public static String getName() {
         return name;
     }
 
-    private static void setName(String name) {
+    public static void setName(String name) {
         LoggedInUser.name = name;
+    }
+
+    public static void clear() {
+        name = null;
     }
 }

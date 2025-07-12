@@ -4,13 +4,16 @@ import com.amdocs.vends.bean.Property;
 import com.amdocs.vends.bean.Tenant;
 import com.amdocs.vends.bean.User;
 import com.amdocs.vends.dao.JDBC;
+import com.amdocs.vends.interfaces.LeaveRequestIntf;
 import com.amdocs.vends.interfaces.UserIntf;
+import com.amdocs.vends.utils.PasswordUtil;
 import com.amdocs.vends.utils.enums.PropertyType;
 import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.exceptions.DuplicateUsernameException;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Scanner;
@@ -22,6 +25,8 @@ public class UserImpl implements UserIntf {
     public void showAdminHomepage() {
         PropertyImpl propertyService = new PropertyImpl();
         TenantImpl tenantService = new TenantImpl();
+        PaymentImpl paymentService = new PaymentImpl();
+        LeaveRequestImpl leaveService = new LeaveRequestImpl();
         System.out.println("Welcome, Mr. " + LoggedInUser.getName());
         System.out.println();
         do {
@@ -100,38 +105,16 @@ public class UserImpl implements UserIntf {
                     tenantService.addTenant(tenant);
                     System.out.println("Added tenant successfully!");
                     break;
+                case 4:
+                    paymentService.showPendingPaymentsAndApprove();
+                    break;
+                case 5:
+                    leaveService.approveLeaveRequest();
+                    break;
+                case 6:
+                    logout();
+                    break;
                 default: System.exit(0);
-            }
-        } while (true);
-    }
-
-    public void showHomepage() {
-        do {
-            System.out.println("1. SignUp");
-            System.out.println("2. Login");
-            System.out.println("3. Exit Program");
-            System.out.print("Enter choice between 1-3: ");
-            int choice = scanner.nextInt();
-            switch (choice) {
-                case 1:
-                    break;
-                case 2:
-                    String username;
-                    String password;
-                    System.out.println("Enter username: ");
-                    scanner.nextLine();
-                    username = scanner.nextLine();
-                    System.out.println("Enter password: ");
-                    password = scanner.nextLine();
-                    int successCode = login(username, password);
-                    if (successCode == 1 && LoggedInUser.getRole().equals(Role.ADMIN)) {
-                        showAdminHomepage();
-                    } else {
-
-                    }
-                    break;
-                case 3:
-                    System.exit(0);
             }
         } while (true);
     }
@@ -160,29 +143,104 @@ public class UserImpl implements UserIntf {
     }
 
     @Override
-    public int login(String username, String password) {
+    public void signup() {
+        Connection connection = JDBC.getConnection();
         try {
-            Connection connection = JDBC.getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = '" + username + "'");
-//            if (resultSet.getFetchSize() == 0) {
-//                System.out.println("User with above username does not exist! Check credentials and try again");
-//                return 0;
-//            }
-            while (resultSet.next()) {
-                String storedPassword = resultSet.getString(5);
-                if (!storedPassword.equals(password)) {
-                    System.out.println("Invalid Password! Check credentials and try again");
-                    return 0;
-                }
-                LoggedInUser.setUserId(Integer.parseInt(resultSet.getString(1)));
-                LoggedInUser.setName(resultSet.getString(3));
-                LoggedInUser.setRole(resultSet.getString(2).toUpperCase());
-                return 1;
+            Statement stmt = connection.createStatement();
+            scanner.nextLine();
+            System.out.print("Enter name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter username: ");
+            String username = scanner.nextLine();
+            System.out.print("Enter password: ");
+            String password = scanner.nextLine();
+            System.out.print("Enter phone number: ");
+            String phone = scanner.nextLine();
+            String role = Role.ADMIN.getValue();
+            String hashedPassword = PasswordUtil.hashPassword(password);
+            PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO users (role, name, username, password_hash, first_login, phone_number) VALUES (?, ?, ?, ?, true, ?)");
+            ps.setString(1, role);
+            ps.setString(2, name);
+            ps.setString(3, username);
+            ps.setString(4, hashedPassword);
+            ps.setString(5, phone);
+            int result = ps.executeUpdate();
+            if (result > 0) {
+                System.out.println("[Sign Up Successful]");
+            } else {
+                System.out.println(" Failed to sign up.");
             }
+            ps.close();
+            stmt.close();
+            MainClass.main(new String[]{});
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("[ERROR] " + e.getMessage());
         }
-        return 0;
+    }
+
+    @Override
+    public boolean login() {
+        boolean successfulLogin = false;
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        Connection connection = JDBC.getConnection();
+
+        try {
+            String query = "SELECT * FROM users WHERE username = ?";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String hashedInput = PasswordUtil.hashPassword(password);
+                String storedHash = rs.getString("password_hash");
+
+                if (hashedInput.equals(storedHash)) {
+                    System.out.println("[Login Successful]");
+                    successfulLogin = true;
+                    LoggedInUser.setUserId(Integer.parseInt(rs.getString("id")));
+                    LoggedInUser.setName(rs.getString("name"));
+                    LoggedInUser.setRole(rs.getString("role").toUpperCase());
+
+                    if (rs.getBoolean("first_login") && LoggedInUser.getRole() == Role.TENANT) {
+                        System.out.println("(First time login)");
+                        System.out.print("Enter new password: ");
+                        String newPassword = scanner.nextLine();
+                        String newHash = PasswordUtil.hashPassword(newPassword);
+
+                        PreparedStatement updatePs = connection.prepareStatement(
+                                "UPDATE users SET password_hash=?, first_login=false WHERE username=?");
+                        updatePs.setString(1, newHash);
+                        updatePs.setString(2, username);
+                        updatePs.executeUpdate();
+                        updatePs.close();
+
+                        System.out.println("[Password Updated Successfully]");
+                    }
+                } else {
+                    System.out.println(" Incorrect password.");
+                }
+            } else {
+                System.out.println(" User not found.");
+            }
+
+            rs.close();
+            ps.close();
+            return successfulLogin;
+        } catch (Exception e) {
+            System.out.println("[ERROR] " + e.getMessage());
+        }
+        return successfulLogin;
+    }
+
+    @Override
+    public void logout() {
+        LoggedInUser.logout();
+        MainClass.main(new String[]{});
+        System.out.println(" Logged out successfully.");
     }
 }

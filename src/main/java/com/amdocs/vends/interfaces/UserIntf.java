@@ -5,5 +5,7 @@ import com.amdocs.vends.utils.exceptions.DuplicateUsernameException;
 
 public interface UserIntf {
     Integer addUser(User user) throws DuplicateUsernameException;
-    int login(String username, String password);
+    void signup();
+    boolean login();
+    void logout();
 }

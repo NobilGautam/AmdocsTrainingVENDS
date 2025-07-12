@@ -16,6 +16,7 @@ public class LoggedInUser {
     public static void logout() {
         name = null;
         role = null;
+        userId = null;
     }
 
     public static void setName(String name) {

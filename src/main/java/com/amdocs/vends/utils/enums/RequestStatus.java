@@ -1,12 +1,12 @@
 package com.amdocs.vends.utils.enums;
 
-public enum LeaveRequestStatus {
+public enum RequestStatus {
     APPROVED("approved"),
     PENDING("pending");
 
     public final String value;
 
-    LeaveRequestStatus(String value) {
+    RequestStatus(String value) {
         this.value = value;
     }
 

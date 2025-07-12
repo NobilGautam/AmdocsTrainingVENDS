@@ -5,29 +5,30 @@ import java.util.Scanner;
 
 public class MainClass {
 	public static void main(String[] args) {
-	    Scanner sc = new Scanner(System.in);
-	    AuthServiceImpl authService = new AuthServiceImpl();
+	    Scanner scanner = new Scanner(System.in);
+	    UserImpl userService = new UserImpl();
 
-	    boolean running = true;
-
-	    while (running) {
+	    while (true) {
 	        System.out.println("\n========= Vends Smart Rental System =========");
 	        System.out.println("1. Login");
 	        System.out.println("2. Signup as Owner");
 	        System.out.println("3. Exit");
 	        System.out.print("Enter choice: ");
-	        int  choice = sc.nextInt();
+	        int  choice = scanner.nextInt();
 
 	        switch (choice) {
 	            case 1:
-	                authService.login();
+	                boolean successfulLogin = userService.login();
+					if (successfulLogin) {
+						userService.showAdminHomepage();
+					}
 	                break;
 	            case 2:
-	                authService.signup();  
+	                userService.signup();
 	                break;
 	            case 3:
 	                System.out.println(" Thank you for using Vends Smart Rental System!");
-	                running = false;
+					System.exit(0);
 	                break;
 	            default:
 	                System.out.println(" Invalid choice.");

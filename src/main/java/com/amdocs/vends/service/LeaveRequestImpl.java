@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 public class LeaveRequestImpl implements LeaveRequestIntf {
     Scanner scanner = new Scanner(System.in);
+    Connection connection = JDBC.getConnection();
 
     @Override
     public void approveLeaveRequest() {
@@ -22,8 +23,8 @@ public class LeaveRequestImpl implements LeaveRequestIntf {
                 "JOIN property p ON t.property_id = p.id " +
                 "WHERE lr.status = 'PENDING' AND lr.approved_by_admin = 0";
 
-        try (Connection con = JDBC.getConnection();
-             PreparedStatement ps = con.prepareStatement(query);
+        try (
+             PreparedStatement ps = connection.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
 
             List<Integer> requestIds = new ArrayList<>();
@@ -49,13 +50,13 @@ public class LeaveRequestImpl implements LeaveRequestIntf {
 
             if (idToApprove != 0 && requestIds.contains(idToApprove)) {
 
-                PreparedStatement approvePs = con.prepareStatement(
+                PreparedStatement approvePs = connection.prepareStatement(
                         "UPDATE leave_requests SET status = 'APPROVED', approved_on = CURRENT_DATE, approved_by_admin = 1 WHERE id = ?"
                 );
                 approvePs.setInt(1, idToApprove);
                 approvePs.executeUpdate();
 
-                PreparedStatement updateTenant = con.prepareStatement(
+                PreparedStatement updateTenant = connection.prepareStatement(
                         "UPDATE tenant SET is_currently_living_there = 0 " +
                                 "WHERE user_id = (SELECT user_id FROM leave_requests WHERE id = ?)"
                 );

@@ -13,16 +13,17 @@ import java.util.Scanner;
 
 public class PaymentImpl implements PaymentIntf {
     Scanner scanner = new Scanner(System.in);
+    Connection connection = JDBC.getConnection();
 
     @Override
     public void showPendingPaymentsAndApprove() {
         String query = "SELECT pay.id, u.name, pay.rent_paid, pay.date_of_payment, pay.rent_for_month " +
-                "FROM payment pay " +
+                "FROM payments pay " +
                 "JOIN users u ON pay.user_id = u.id " +
                 "WHERE pay.approved_by_admin = false";
 
-        try (Connection con = JDBC.getConnection();
-             Statement stmt = con.createStatement();
+        try (
+             Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
 
             List<Integer> ids = new ArrayList<>();
@@ -47,7 +48,7 @@ public class PaymentImpl implements PaymentIntf {
             int pid = Integer.parseInt(scanner.nextLine());
 
             if (pid != 0 && ids.contains(pid)) {
-                PreparedStatement ps = con.prepareStatement("UPDATE payment SET approved_by_admin = true WHERE id = ?");
+                PreparedStatement ps = connection.prepareStatement("UPDATE payment SET approved_by_admin = true WHERE id = ?");
                 ps.setInt(1, pid);
                 ps.executeUpdate();
                 System.out.println("Payment ID " + pid + " approved.");

@@ -1,5 +1,6 @@
 package com.amdocs.vends.service;
 
+import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 import java.util.Scanner;
 
@@ -18,10 +19,15 @@ public class MainClass {
 
 	        switch (choice) {
 	            case 1:
-	                boolean successfulLogin = userService.login();
-					if (successfulLogin) {
-						userService.showAdminHomepage();
-					}
+	            	boolean successfulLogin = userService.login();
+	            	if (successfulLogin) {
+	            	    if (LoggedInUser.getRole() == Role.ADMIN) {
+	            	        userService.showAdminHomepage();
+	            	    } else if (LoggedInUser.getRole() == Role.TENANT) {
+	            	        userService.showTenantHomepage();
+	            	    } 
+	            	}
+
 	                break;
 	            case 2:
 	                userService.signup();

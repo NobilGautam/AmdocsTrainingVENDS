@@ -60,6 +60,11 @@ public class UserImpl implements UserIntf {
             }
         } while (true);
     }
+    
+    public void showTenantHomepage() {
+        System.out.println("This is pending!");
+    }
+
 
     private void addTenant(TenantImpl tenantService) {
         Integer userId = LoggedInUser.getUserId();

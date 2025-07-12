@@ -31,7 +31,12 @@ public class LoggedInUser {
     }
 
     public static void setRole(String role) {
-        LoggedInUser.role = Role.valueOf(role);
+        try {
+            LoggedInUser.role = Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.err.println("[ERROR] Invalid role provided: " + role);
+            LoggedInUser.role = null;
+        }
     }
 
     public static Role getRole() {

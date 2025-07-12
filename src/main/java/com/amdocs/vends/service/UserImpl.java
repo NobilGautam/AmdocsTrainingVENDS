@@ -44,6 +44,9 @@ public class UserImpl implements UserIntf {
                 case 2:
                     addTenant(tenantService);
                     break;
+                case 3:
+                	propertyService.showPropertyDetails();
+                    break;
                 case 4:
                     paymentService.showPendingPaymentsAndApprove();
                     break;

@@ -2,10 +2,12 @@ package com.amdocs.vends.service;
 
 import com.amdocs.vends.dao.JDBC;
 import com.amdocs.vends.interfaces.LeaveRequestIntf;
+import com.amdocs.vends.utils.singleton.LoggedInUser;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -69,6 +71,49 @@ public class LeaveRequestImpl implements LeaveRequestIntf {
                 System.out.println("Invalid request ID.");
             }
 
+        } catch (Exception e) {
+            System.out.println("[ERROR] " + e.getMessage());
+        }
+    }
+
+    public void raiseLeaveRequest() {
+        int userId = LoggedInUser.getUserId();
+
+        try (Connection con = JDBC.getConnection()) {
+            String checkTenant = "SELECT is_currently_living_there FROM tenant WHERE user_id = ?";
+            PreparedStatement tenantCheck = con.prepareStatement(checkTenant);
+            tenantCheck.setInt(1, userId);
+            ResultSet tenantRs = tenantCheck.executeQuery();
+
+            if (!tenantRs.next() || !tenantRs.getBoolean("is_currently_living_there")) {
+                System.out.println("You're not currently living in any property.");
+                return;
+            }
+
+            String checkQuery = "SELECT * FROM leave_requests WHERE user_id = ? AND status = 'PENDING'";
+            PreparedStatement checkPs = con.prepareStatement(checkQuery);
+            checkPs.setInt(1, userId);
+            ResultSet rs = checkPs.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("You already have a pending leave request.");
+                return;
+            }
+
+            String insertQuery = "INSERT INTO leave_requests (user_id, request_date, status, approved_by_admin) VALUES (?, ?, 'PENDING', false)";
+            PreparedStatement insertPs = con.prepareStatement(insertQuery);
+            insertPs.setInt(1, userId);
+            insertPs.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+
+            int rowsInserted = insertPs.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("Leave request submitted successfully.");
+            } else {
+                System.out.println("Failed to submit leave request.");
+            }
+
+            insertPs.close();
+            checkPs.close();
         } catch (Exception e) {
             System.out.println("[ERROR] " + e.getMessage());
         }

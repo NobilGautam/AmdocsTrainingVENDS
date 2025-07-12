@@ -20,12 +20,12 @@ import java.util.Scanner;
 public class UserImpl implements UserIntf {
 
     Scanner scanner = new Scanner(System.in);
+    PropertyImpl propertyService = new PropertyImpl();
+    TenantImpl tenantService = new TenantImpl();
+    PaymentImpl paymentService = new PaymentImpl();
+    LeaveRequestImpl leaveService = new LeaveRequestImpl();
 
     public void showAdminHomepage() {
-        PropertyImpl propertyService = new PropertyImpl();
-        TenantImpl tenantService = new TenantImpl();
-        PaymentImpl paymentService = new PaymentImpl();
-        LeaveRequestImpl leaveService = new LeaveRequestImpl();
         System.out.println("Welcome, Mr. " + LoggedInUser.getName());
         System.out.println();
         do {
@@ -44,6 +44,9 @@ public class UserImpl implements UserIntf {
                 case 2:
                     addTenant(tenantService);
                     break;
+                case 3:
+                	propertyService.showPropertyDetails();
+                    break;
                 case 4:
                     paymentService.showPendingPaymentsAndApprove();
                     break;
@@ -57,9 +60,14 @@ public class UserImpl implements UserIntf {
             }
         } while (true);
     }
+    
+    public void showTenantHomepage() {
+        System.out.println("This is pending!");
+    }
+
 
     private void addTenant(TenantImpl tenantService) {
-        Integer userId = LoggedInUser.getUserId();
+        Integer userId;
         String name;
         String username;
         String role = Role.TENANT.getValue();
@@ -80,12 +88,20 @@ public class UserImpl implements UserIntf {
         try {
             userId = addUser(user);
         } catch (DuplicateUsernameException e) {
+            throw new RuntimeException(e);
+        }
+        if (userId == -1) {
             showAdminHomepage();
-            System.err.println(e.getMessage());
+            return;
         }
         Boolean isCurrentlyLivingThere = true;
         System.out.println("Enter property Id: ");
         propertyId = scanner.nextInt();
+        boolean isValidProperty = propertyService.checkPropertyBelongsToUser(LoggedInUser.getUserId(), propertyId);
+        if (!isValidProperty) {
+            showAdminHomepage();
+            return;
+        }
         System.out.println("Enter rent: ");
         rent = scanner.nextFloat();
         Tenant tenant = new Tenant(userId, propertyId, rent, isCurrentlyLivingThere);
@@ -132,7 +148,7 @@ public class UserImpl implements UserIntf {
             Connection connection = JDBC.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM users WHERE username = '" + user.getUsername()+"'");
-            if (resultSet.getFetchSize() > 0) {
+            if (resultSet.next()) {
                 throw new DuplicateUsernameException("Username already exists!");
             }
             int result = statement.executeUpdate("INSERT INTO users (role, name, username, password_hash, first_login, phone_number) VALUES ('"+user.getRole()+"','"+user.getName()+"','"+user.getUsername()+"','"+user.getPasswordHash()+"',"+user.getFirstLogin()+",'"+user.getPhoneNumber()+"')");

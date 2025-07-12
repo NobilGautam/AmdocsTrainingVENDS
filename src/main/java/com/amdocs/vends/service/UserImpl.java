@@ -4,7 +4,6 @@ import com.amdocs.vends.bean.Property;
 import com.amdocs.vends.bean.Tenant;
 import com.amdocs.vends.bean.User;
 import com.amdocs.vends.dao.JDBC;
-import com.amdocs.vends.interfaces.LeaveRequestIntf;
 import com.amdocs.vends.interfaces.UserIntf;
 import com.amdocs.vends.utils.PasswordUtil;
 import com.amdocs.vends.utils.enums.PropertyType;
@@ -40,70 +39,10 @@ public class UserImpl implements UserIntf {
             int choice = scanner.nextInt();
             switch (choice) {
                 case 1:
-                    Integer userId = LoggedInUser.getUserId();
-                    String propertyType;
-                    String address;
-                    String city;
-                    String state;
-                    String status = "active";
-                    System.out.println("Select Property Type:");
-                    System.out.println("1. Villa    2. Flat    3. Plotted House");
-                    System.out.print("Enter choice between 1-3: ");
-                    int propertyTypeChoice = scanner.nextInt();
-                    if (propertyTypeChoice == 1) {
-                        propertyType = PropertyType.VILLA.getValue();
-                    } else if (propertyTypeChoice == 2) {
-                        propertyType = PropertyType.FLAT.getValue();
-                    } else if (propertyTypeChoice == 3) {
-                        propertyType = PropertyType.PLOTTED_HOUSE.getValue();
-                    } else {
-                        System.out.println("Wrong choice!");
-                        break;
-                    }
-                    System.out.println("Enter Address: ");
-                    scanner.nextLine();
-                    address = scanner.nextLine();
-                    System.out.println("Enter City: ");
-                    city = scanner.nextLine();
-                    System.out.println("Enter State: ");
-                    state = scanner.nextLine();
-                    Property property = new Property(userId, propertyType, address, city, state, status);
-                    propertyService.addProperty(property);
-                    System.out.println("Added property successfully!");
+                    addProperty(propertyService);
                     break;
                 case 2:
-                    userId = LoggedInUser.getUserId();
-                    String name;
-                    String username;
-                    String role = Role.TENANT.getValue();
-                    String passwordHash;
-                    String phoneNumber;
-                    Integer propertyId;
-                    Float rent;
-                    scanner.nextLine();
-                    System.out.println("Enter name of tenant: ");
-                    name = scanner.nextLine();
-                    System.out.println("Enter username of tenant: ");
-                    username = scanner.nextLine();
-                    System.out.println("Enter temporary password of tenant: ");
-                    passwordHash = scanner.nextLine();
-                    System.out.println("Enter phone number of tenant: ");
-                    phoneNumber = scanner.nextLine();
-                    User user = new User(role, name, username, passwordHash, true, phoneNumber);
-                    try {
-                        userId = addUser(user);
-                    } catch (DuplicateUsernameException e) {
-                        showAdminHomepage();
-                        System.err.println(e.getMessage());
-                    }
-                    Boolean isCurrentlyLivingThere = true;
-                    System.out.println("Enter property Id: ");
-                    propertyId = scanner.nextInt();
-                    System.out.println("Enter rent: ");
-                    rent = scanner.nextFloat();
-                    Tenant tenant = new Tenant(userId, propertyId, rent, isCurrentlyLivingThere);
-                    tenantService.addTenant(tenant);
-                    System.out.println("Added tenant successfully!");
+                    addTenant(tenantService);
                     break;
                 case 4:
                     paymentService.showPendingPaymentsAndApprove();
@@ -117,6 +56,74 @@ public class UserImpl implements UserIntf {
                 default: System.exit(0);
             }
         } while (true);
+    }
+
+    private void addTenant(TenantImpl tenantService) {
+        Integer userId = LoggedInUser.getUserId();
+        String name;
+        String username;
+        String role = Role.TENANT.getValue();
+        String passwordHash;
+        String phoneNumber;
+        Integer propertyId;
+        Float rent;
+        scanner.nextLine();
+        System.out.println("Enter name of tenant: ");
+        name = scanner.nextLine();
+        System.out.println("Enter username of tenant: ");
+        username = scanner.nextLine();
+        System.out.println("Enter temporary password of tenant: ");
+        passwordHash = scanner.nextLine();
+        System.out.println("Enter phone number of tenant: ");
+        phoneNumber = scanner.nextLine();
+        User user = new User(role, name, username, passwordHash, true, phoneNumber);
+        try {
+            userId = addUser(user);
+        } catch (DuplicateUsernameException e) {
+            showAdminHomepage();
+            System.err.println(e.getMessage());
+        }
+        Boolean isCurrentlyLivingThere = true;
+        System.out.println("Enter property Id: ");
+        propertyId = scanner.nextInt();
+        System.out.println("Enter rent: ");
+        rent = scanner.nextFloat();
+        Tenant tenant = new Tenant(userId, propertyId, rent, isCurrentlyLivingThere);
+        tenantService.addTenant(tenant);
+        System.out.println("Added tenant successfully!");
+    }
+
+    private void addProperty(PropertyImpl propertyService) {
+        Integer userId = LoggedInUser.getUserId();
+        String propertyType;
+        String address;
+        String city;
+        String state;
+        String status = "active";
+        System.out.println("Select Property Type:");
+        System.out.println("1. Villa    2. Flat    3. Plotted House");
+        System.out.print("Enter choice between 1-3: ");
+        int propertyTypeChoice = scanner.nextInt();
+        if (propertyTypeChoice == 1) {
+            propertyType = PropertyType.VILLA.getValue();
+        } else if (propertyTypeChoice == 2) {
+            propertyType = PropertyType.FLAT.getValue();
+        } else if (propertyTypeChoice == 3) {
+            propertyType = PropertyType.PLOTTED_HOUSE.getValue();
+        } else {
+            System.out.println("Wrong choice!");
+            return;
+        }
+        System.out.println("Enter Address: ");
+        scanner.nextLine();
+        address = scanner.nextLine();
+        System.out.println("Enter City: ");
+        city = scanner.nextLine();
+        System.out.println("Enter State: ");
+        state = scanner.nextLine();
+        Property property = new Property(userId, propertyType, address, city, state, status);
+        propertyService.addProperty(property);
+        System.out.println("Added property successfully!");
     }
 
     @Override

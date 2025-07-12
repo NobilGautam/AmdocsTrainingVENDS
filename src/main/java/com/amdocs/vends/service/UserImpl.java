@@ -62,7 +62,32 @@ public class UserImpl implements UserIntf {
     }
     
     public void showTenantHomepage() {
-        System.out.println("This is pending!");
+        do {
+            System.out.println("Welcome, Mr. " + LoggedInUser.getName());
+            System.out.println("1. View property details");
+            System.out.println("2. Pay rent and generate approval request");
+            System.out.println("3. Vacate property and generate approval request");
+            System.out.println("4. Logout");
+            System.out.print("Enter a choice between 1-4: ");
+            int choice = scanner.nextInt();
+            switch (choice) {
+                case 1:
+                    propertyService.viewPropertyDetails();
+                    break;
+                case 2:
+                    //todo: handle cases of entering rent greater than total rent
+                    paymentService.payRent();
+                    break;
+                case 3:
+                    leaveService.vacateProperty();
+                    break;
+                case 4:
+                    logout();
+                    break;
+                default:
+                    System.exit(0);
+            }
+        } while (true);
     }
 
 
@@ -82,6 +107,7 @@ public class UserImpl implements UserIntf {
         username = scanner.nextLine();
         System.out.println("Enter temporary password of tenant: ");
         passwordHash = scanner.nextLine();
+        passwordHash = PasswordUtil.hashPassword(passwordHash);
         System.out.println("Enter phone number of tenant: ");
         phoneNumber = scanner.nextLine();
         User user = new User(role, name, username, passwordHash, true, phoneNumber);

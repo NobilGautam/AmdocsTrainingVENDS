@@ -22,7 +22,11 @@ public class MainClass {
 	            case 1:
 	                boolean successfulLogin = userService.login();
 					if (successfulLogin) {
-						userService.showAdminHomepage();
+						if (LoggedInUser.getRole().equals(Role.ADMIN)) {
+							userService.showAdminHomepage();
+						} else {
+							userService.showTenantHomepage();
+						}
 					}
 	                break;
 	            case 2:

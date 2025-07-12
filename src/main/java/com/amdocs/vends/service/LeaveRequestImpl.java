@@ -2,11 +2,13 @@ package com.amdocs.vends.service;
 
 import com.amdocs.vends.dao.JDBC;
 import com.amdocs.vends.interfaces.LeaveRequestIntf;
+import com.amdocs.vends.utils.enums.RequestStatus;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,46 +78,37 @@ public class LeaveRequestImpl implements LeaveRequestIntf {
         }
     }
 
-    public void raiseLeaveRequest() {
-        int userId = LoggedInUser.getUserId();
-
-        try (Connection con = JDBC.getConnection()) {
-            String checkTenant = "SELECT is_currently_living_there FROM tenant WHERE user_id = ?";
-            PreparedStatement tenantCheck = con.prepareStatement(checkTenant);
-            tenantCheck.setInt(1, userId);
-            ResultSet tenantRs = tenantCheck.executeQuery();
-
-            if (!tenantRs.next() || !tenantRs.getBoolean("is_currently_living_there")) {
-                System.out.println("You're not currently living in any property.");
-                return;
+    @Override
+    public void vacateProperty() {
+        System.out.print("Confirm Vacate Property? [Y/N]: ");
+        String input = scanner.nextLine();
+        if (!input.equalsIgnoreCase("Y")) {
+            System.out.println("Vacate request cancelled.");
+            return;
+        }
+        boolean requestSuccess = false;
+        String sql = "INSERT INTO leave_requests (user_id, request_date, status, approved_by_admin) VALUES (?, CURDATE(), ?, 0)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, LoggedInUser.getUserId());
+            ps.setString(2, RequestStatus.PENDING.getValue());
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                sql = "UPDATE tenant SET is_currently_living_there = ? WHERE user_id = ?";
+                ps = connection.prepareStatement(sql);
+                ps.setInt(1, 0);
+                ps.setInt(2, LoggedInUser.getUserId());
+                ps.executeUpdate();
+                //todo: add exception handling for above ps statement
+                requestSuccess = true;
             }
-
-            String checkQuery = "SELECT * FROM leave_requests WHERE user_id = ? AND status = 'PENDING'";
-            PreparedStatement checkPs = con.prepareStatement(checkQuery);
-            checkPs.setInt(1, userId);
-            ResultSet rs = checkPs.executeQuery();
-
-            if (rs.next()) {
-                System.out.println("You already have a pending leave request.");
-                return;
-            }
-
-            String insertQuery = "INSERT INTO leave_requests (user_id, request_date, status, approved_by_admin) VALUES (?, ?, 'PENDING', false)";
-            PreparedStatement insertPs = con.prepareStatement(insertQuery);
-            insertPs.setInt(1, userId);
-            insertPs.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
-
-            int rowsInserted = insertPs.executeUpdate();
-            if (rowsInserted > 0) {
-                System.out.println("Leave request submitted successfully.");
-            } else {
-                System.out.println("Failed to submit leave request.");
-            }
-
-            insertPs.close();
-            checkPs.close();
-        } catch (Exception e) {
-            System.out.println("[ERROR] " + e.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (requestSuccess) {
+            System.out.println("[Leave Request Submitted]");
+        } else {
+            System.out.println("Failed to submit leave request. Please try again.");
         }
     }
 }

@@ -20,7 +20,7 @@ public class JDBC {
     private static Connection connectToDatabase() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/amdocstraining", "root", "root");
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/amdocstraining", "root", "Nobil@0711");
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SHOW TABLES");
             if (resultSet.next()) {

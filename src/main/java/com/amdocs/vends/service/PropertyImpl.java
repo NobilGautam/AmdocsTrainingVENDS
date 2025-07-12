@@ -5,11 +5,8 @@ import com.amdocs.vends.dao.JDBC;
 import com.amdocs.vends.interfaces.PropertyIntf;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 
-import java.sql.Connection;
+import java.sql.*;
 import java.sql.ResultSet;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
 
 public class PropertyImpl implements PropertyIntf {
     Connection connection = JDBC.getConnection();
@@ -84,5 +81,33 @@ public class PropertyImpl implements PropertyIntf {
             System.out.println(e.getMessage());
         }
         return false;
+    }
+
+    public void viewPropertyDetails() {
+        try (PreparedStatement ps = connection.prepareStatement(
+                     "SELECT p.id, p.address, p.city, p.state, t.rent, p.status " +
+                             "FROM property p JOIN tenant t ON p.id = t.property_id " +
+                             "WHERE t.user_id = ?")) {
+            ps.setInt(1, LoggedInUser.getUserId());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Property property = new Property();
+                property.setPropertyId(rs.getInt("id"));
+                property.setAddress(rs.getString("address"));
+                property.setCity(rs.getString("city"));
+                property.setState(rs.getString("state"));
+                property.setRent(rs.getFloat("rent"));
+                property.setStatus(rs.getString("status"));
+                System.out.println("\nProperty ID: " + property.getPropertyId());
+                System.out.println("Address: " + property.getAddress() +
+                        ", City: " + property.getCity() +
+                        ", State: " + property.getState());
+                System.out.println("Rent: Rs." + property.getRent());
+                System.out.println("Status: " + property.getStatus());
+                System.out.println();
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching property: " + e.getMessage());
+        }
     }
 }

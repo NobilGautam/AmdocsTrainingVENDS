@@ -1,12 +1,14 @@
 package com.amdocs.vends.bean;
 
 public class Property {
+    Integer propertyId;
     Integer userId;
     String propertyType;
     String address;
     String city;
     String state;
     String status;
+    Float rent;
 
     public Property() {}
     public Property(Integer userId, String propertyType, String address, String city, String state, String status) {
@@ -16,6 +18,12 @@ public class Property {
         this.city = city;
         this.state = state;
         this.status = status;
+    }
+    public Integer getPropertyId() {
+        return propertyId;
+    }
+    public void setPropertyId(Integer propertyId) {
+        this.propertyId = propertyId;
     }
     public Integer getUserId() {
         return userId;
@@ -52,5 +60,11 @@ public class Property {
     }
     public void setStatus(String status) {
         this.status = status;
+    }
+    public Float getRent() {
+        return rent;
+    }
+    public void setRent(Float rent) {
+        this.rent = rent;
     }
 }

@@ -3,6 +3,7 @@ package com.amdocs.vends.service;
 import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 import java.util.Scanner;
+import com.amdocs.vends.dao.JDBC;
 
 public class MainClass {
 	public static void main(String[] args) {
@@ -19,15 +20,10 @@ public class MainClass {
 
 	        switch (choice) {
 	            case 1:
-	            	boolean successfulLogin = userService.login();
-	            	if (successfulLogin) {
-	            	    if (LoggedInUser.getRole() == Role.ADMIN) {
-	            	        userService.showAdminHomepage();
-	            	    } else if (LoggedInUser.getRole() == Role.TENANT) {
-	            	        userService.showTenantHomepage();
-	            	    } 
-	            	}
-
+	                boolean successfulLogin = userService.login();
+					if (successfulLogin) {
+						userService.showAdminHomepage();
+					}
 	                break;
 	            case 2:
 	                userService.signup();

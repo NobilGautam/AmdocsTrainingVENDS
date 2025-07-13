@@ -95,7 +95,10 @@ public class PaymentImpl implements PaymentIntf {
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM TENANT WHERE user_id = " + LoggedInUser.getUserId());
-            float totalMonthlyRent = resultSet.getFloat("rent");
+            float totalMonthlyRent = Float.MAX_VALUE;
+            if (resultSet.next()) {
+                totalMonthlyRent = resultSet.getFloat("rent");
+            }
             if (rentPaid > totalMonthlyRent) {
                 System.out.println("You paid " + rentPaid + " which is more than the total monthly rent: " + totalMonthlyRent + ". Enter a valid amount less than or equals to the total rent and try again.");
                 payRent();

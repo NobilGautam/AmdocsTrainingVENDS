@@ -23,18 +23,10 @@ import static org.mockito.Mockito.*;
 public class UserImplTest {
 
     private UserImpl userService;
-    private Connection mockConnection;
-    private Statement mockStatement;
-    private PreparedStatement mockPreparedStatement;
-    private ResultSet mockResultSet;
 
     @Before
     public void setUp() {
         userService = new UserImpl();
-        mockConnection = mock(Connection.class);
-        mockStatement = mock(Statement.class);
-        mockPreparedStatement = mock(PreparedStatement.class);
-        mockResultSet = mock(ResultSet.class);
     }
 
     @After

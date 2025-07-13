@@ -25,7 +25,7 @@ public class PaymentImpl implements PaymentIntf {
                 "    SELECT ot.user_id, u.name FROM owner_tenants ot JOIN users u ON u.id = ot.user_id\n" +
                 ")\n" +
                 "SELECT \n" +
-                "    pay.id, otwn.name, pay.rent_paid, pay.date_of_payment, pay.rent_for_month\n" +
+                "    pay.id, otwn.name, pay.rent_paid, pay.date_of_payment, pay.rent_for_month, pay.approved_by_admin\n" +
                 "FROM \n" +
                 "    payments pay \n" +
                 "JOIN \n" +
@@ -45,7 +45,8 @@ public class PaymentImpl implements PaymentIntf {
                         ", Tenant: " + rs.getString("name") +
                         ", Amount: ₹" + rs.getDouble("rent_paid") +
                         ", Month: " + rs.getString("rent_for_month") +
-                        ", Date: " + rs.getDate("date_of_payment"));
+                        ", Date: " + rs.getDate("date_of_payment") +
+                        ", Approved By you: " + rs.getBoolean("approved_by_admin"));
             }
 
             if (ids.isEmpty()) {
@@ -57,7 +58,7 @@ public class PaymentImpl implements PaymentIntf {
             int pid = Integer.parseInt(scanner.nextLine());
 
             if (pid != 0 && ids.contains(pid)) {
-                PreparedStatement ps = connection.prepareStatement("UPDATE payment SET approved_by_admin = true WHERE id = ?");
+                PreparedStatement ps = connection.prepareStatement("UPDATE payments SET approved_by_admin = true WHERE id = ?");
                 ps.setInt(1, pid);
                 ps.executeUpdate();
                 System.out.println("Payment ID " + pid + " approved.");
@@ -75,6 +76,19 @@ public class PaymentImpl implements PaymentIntf {
         System.out.print("Enter Rent Amount: Rs.");
         float rentPaid = scanner.nextFloat();
         scanner.nextLine();
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM TENANT WHERE user_id = " + LoggedInUser.getUserId());
+            float totalMonthlyRent = resultSet.getFloat("rent");
+            if (rentPaid > totalMonthlyRent) {
+                System.out.println("You paid " + rentPaid + " which is more than the total monthly rent: " + totalMonthlyRent + ". Enter a valid amount less than or equals to the total rent and try again.");
+                payRent();
+            } else {
+                System.out.println("You have paid: " + rentPaid + " Rupees. That is " + (rentPaid*100/totalMonthlyRent) + "% of your total monthly rent.");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
         System.out.print("Enter month in words(e.g. July, August): ");
         String rentMonth = scanner.nextLine().toLowerCase();

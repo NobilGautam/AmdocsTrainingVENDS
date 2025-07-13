@@ -24,6 +24,7 @@ public class UserImpl implements UserIntf {
     TenantImpl tenantService = new TenantImpl();
     PaymentImpl paymentService = new PaymentImpl();
     LeaveRequestImpl leaveService = new LeaveRequestImpl();
+    Connection connection = JDBC.getConnection();
 
     public void showAdminHomepage() {
         System.out.println("Welcome, Mr. " + LoggedInUser.getName());
@@ -75,7 +76,6 @@ public class UserImpl implements UserIntf {
                     propertyService.viewPropertyDetails();
                     break;
                 case 2:
-                    //todo: handle cases of entering rent greater than total rent
                     paymentService.payRent();
                     break;
                 case 3:
@@ -125,6 +125,14 @@ public class UserImpl implements UserIntf {
         propertyId = scanner.nextInt();
         boolean isValidProperty = propertyService.checkPropertyBelongsToUser(LoggedInUser.getUserId(), propertyId);
         if (!isValidProperty) {
+            try {
+                Statement statement = connection.createStatement();
+                int result = statement.executeUpdate("SET FOREIGN_KEY_CHECKS=0");
+                result = statement.executeUpdate("DELETE FROM users WHERE username = '" + username + "'");
+                result = statement.executeUpdate("SET FOREIGN_KEY_CHECKS=1");
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
             showAdminHomepage();
             return;
         }

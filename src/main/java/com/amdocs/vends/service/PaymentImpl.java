@@ -22,10 +22,10 @@ public class PaymentImpl implements PaymentIntf {
                 "    SELECT t.user_id FROM owner_properties op JOIN tenant t ON t.property_id = op.id\n" +
                 "),\n" +
                 "owner_tenants_with_name AS (\n" +
-                "    SELECT ot.user_id, u.name FROM owner_tenants ot JOIN users u ON u.id = ot.user_id\n" +
+                "    SELECT ot.user_id, u.name, u.id FROM owner_tenants ot JOIN users u ON u.id = ot.user_id\n" +
                 ")\n" +
                 "SELECT \n" +
-                "    pay.id, otwn.name, pay.rent_paid, pay.date_of_payment, pay.rent_for_month, pay.approved_by_admin\n" +
+                "    pay.id, otwn.name, otwn.id as user_id, pay.rent_paid, pay.date_of_payment, pay.rent_for_month, pay.approved_by_admin\n" +
                 "FROM \n" +
                 "    payments pay \n" +
                 "JOIN \n" +
@@ -40,10 +40,18 @@ public class PaymentImpl implements PaymentIntf {
 
             while (rs.next()) {
                 int id = rs.getInt("id");
+                int userId = rs.getInt("user_id");
+                Statement statement = connection.createStatement();
+                ResultSet tenantResultSet = statement.executeQuery("SELECT * FROM tenant WHERE user_id = " + userId);
+                float monthlyTotalRent = 0;
+                if (tenantResultSet.next()) {
+                    monthlyTotalRent = tenantResultSet.getFloat("rent");
+                }
                 ids.add(id);
                 System.out.println("Payment ID: " + id +
                         ", Tenant: " + rs.getString("name") +
                         ", Amount: ₹" + rs.getDouble("rent_paid") +
+                        ", Percentage of rent paid: " + rs.getDouble("rent_paid")*100/monthlyTotalRent +
                         ", Month: " + rs.getString("rent_for_month") +
                         ", Date: " + rs.getDate("date_of_payment") +
                         ", Approved By you: " + rs.getBoolean("approved_by_admin"));
@@ -58,6 +66,14 @@ public class PaymentImpl implements PaymentIntf {
             int pid = Integer.parseInt(scanner.nextLine());
 
             if (pid != 0 && ids.contains(pid)) {
+                Statement statement = connection.createStatement();
+                ResultSet  resultSet = statement.executeQuery("SELECT * FROM payments WHERE id = " + pid);
+                if (resultSet.next()) {
+                    if (resultSet.getBoolean("approved_by_admin")) {
+                        System.out.println("You have already approved this payment!");
+                        return;
+                    }
+                }
                 PreparedStatement ps = connection.prepareStatement("UPDATE payments SET approved_by_admin = true WHERE id = ?");
                 ps.setInt(1, pid);
                 ps.executeUpdate();

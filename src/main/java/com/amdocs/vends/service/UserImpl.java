@@ -205,14 +205,67 @@ public class UserImpl implements UserIntf {
         try {
             Statement stmt = connection.createStatement();
             scanner.nextLine();
-            System.out.print("Enter name: ");
-            String name = scanner.nextLine();
-            System.out.print("Enter username: ");
-            String username = scanner.nextLine();
-            System.out.print("Enter password: ");
-            String password = scanner.nextLine();
-            System.out.print("Enter phone number: ");
-            String phone = scanner.nextLine();
+            
+            String name, username, password, phone;
+            
+            // Get and validate name
+            do {
+                System.out.print("Enter name: ");
+                name = scanner.nextLine();
+                if (name == null || name.trim().isEmpty()) {
+                    System.out.println("Name cannot be blank. Please enter a valid name.");
+                    continue;
+                }
+                break;
+            } while (true);
+            
+            // Get and validate username
+            do {
+                System.out.print("Enter username: ");
+                username = scanner.nextLine();
+                if (username == null || username.trim().isEmpty()) {
+                    System.out.println("Username cannot be blank. Please enter a valid username.");
+                    continue;
+                }
+                break;
+            } while (true);
+            
+            // Get and validate password
+            do {
+                System.out.print("Enter password: ");
+                password = scanner.nextLine();
+                if (password == null || password.trim().isEmpty()) {
+                    System.out.println("Password cannot be blank. Please enter a valid password.");
+                    continue;
+                }
+                if (password.length() < 6) {
+                    System.out.println("Password must be at least 6 characters long.");
+                    continue;
+                }
+                break;
+            } while (true);
+            
+            // Get and validate phone number
+            do {
+                System.out.print("Enter phone number: ");
+                phone = scanner.nextLine();
+                if (phone == null || phone.trim().isEmpty()) {
+                    System.out.println("Phone number cannot be blank. Please enter a valid phone number.");
+                    continue;
+                }
+                if (phone.length() != 10 || !phone.matches("\\d+")) {
+                    System.out.println("Phone number must be exactly 10 digits.");
+                    continue;
+                }
+                break;
+            } while (true);
+            
+            // Trim all inputs
+            name = name.trim();
+            username = username.trim();
+            password = password.trim();
+            phone = phone.trim();
+            
             String role = Role.ADMIN.getValue();
             String hashedPassword = PasswordUtil.hashPassword(password);
             PreparedStatement ps = connection.prepareStatement(
@@ -239,10 +292,34 @@ public class UserImpl implements UserIntf {
     @Override
     public boolean login() {
         boolean successfulLogin = false;
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter password: ");
-        String password = scanner.nextLine();
+        
+        String username, password;
+        
+        // Get and validate username
+        do {
+            System.out.print("Enter username: ");
+            username = scanner.nextLine();
+            if (username == null || username.trim().isEmpty()) {
+                System.out.println("Username cannot be blank. Please enter a valid username.");
+                continue;
+            }
+            break;
+        } while (true);
+        
+        // Get and validate password
+        do {
+            System.out.print("Enter password: ");
+            password = scanner.nextLine();
+            if (password == null || password.trim().isEmpty()) {
+                System.out.println("Password cannot be blank. Please enter a valid password.");
+                continue;
+            }
+            break;
+        } while (true);
+        
+        // Trim inputs
+        username = username.trim();
+        password = password.trim();
 
         Connection connection = JDBC.getConnection();
 

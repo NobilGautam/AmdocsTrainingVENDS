@@ -9,8 +9,6 @@ import com.amdocs.vends.utils.singleton.LoggedInUser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 public class UserImplTest {
 

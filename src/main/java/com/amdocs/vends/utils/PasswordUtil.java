@@ -1,4 +1,3 @@
-
 package com.amdocs.vends.utils;
 
 import java.nio.charset.StandardCharsets;

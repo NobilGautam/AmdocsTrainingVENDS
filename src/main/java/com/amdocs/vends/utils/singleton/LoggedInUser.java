@@ -3,7 +3,6 @@ package com.amdocs.vends.utils.singleton;
 import com.amdocs.vends.utils.enums.Role;
 
 public class LoggedInUser {
-
     private static String name = null;
     private static Integer userId = null;
     private static Role role = null;

@@ -37,7 +37,6 @@ public class PaymentImpl implements PaymentIntf {
             ResultSet rs = stmt.executeQuery();
             List<Integer> ids = new ArrayList<>();
             System.out.println("\n--- Pending Rent Payments ---");
-
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int userId = rs.getInt("user_id");
@@ -56,15 +55,12 @@ public class PaymentImpl implements PaymentIntf {
                         ", Date: " + rs.getDate("date_of_payment") +
                         ", Approved By you: " + rs.getBoolean("approved_by_admin"));
             }
-
             if (ids.isEmpty()) {
                 System.out.println("No pending payments to approve.");
                 return;
             }
-
             System.out.print("Enter Payment ID to approve (or 0 to skip): ");
             int pid = Integer.parseInt(scanner.nextLine());
-
             if (pid != 0 && ids.contains(pid)) {
                 Statement statement = connection.createStatement();
                 ResultSet  resultSet = statement.executeQuery("SELECT * FROM payments WHERE id = " + pid);
@@ -81,7 +77,6 @@ public class PaymentImpl implements PaymentIntf {
             } else if (pid != 0) {
                 System.out.println("Invalid Payment ID.");
             }
-
         } catch (Exception e) {
             System.out.println("[ERROR] " + e.getMessage());
         }
@@ -108,10 +103,8 @@ public class PaymentImpl implements PaymentIntf {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
         System.out.print("Enter month in words(e.g. July, August): ");
         String rentMonth = scanner.nextLine().toLowerCase();
-
         // 2. Insert payment request into the database
         boolean success = false;
         String sql = "INSERT INTO payments (user_id, rent_paid, date_of_payment, rent_for_month, approved_by_admin) VALUES (?, ?, CURDATE(), ?, 0)";
@@ -125,7 +118,6 @@ public class PaymentImpl implements PaymentIntf {
             e.printStackTrace();
             success = false;
         }
-
         if (success) {
             System.out.println("[Request Sent for Approval]");
         } else {

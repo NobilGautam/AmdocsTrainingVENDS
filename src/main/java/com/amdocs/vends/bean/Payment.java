@@ -18,33 +18,43 @@ public class Payment {
         this.rentForMonth = rentForMonth;
         this.approvedByAdmin = approvedByAdmin;
     }
+
     public Integer getUserId() {
         return userId;
     }
+
     public void setUserId(Integer userId) {
         this.userId = userId;
     }
+
     public Float getRentPaid() {
         return rentPaid;
     }
+
     public void setRentPaid(Float rentPaid) {
         this.rentPaid = rentPaid;
     }
+
     public Date getDateOfPayment() {
         return dateOfPayment;
     }
+
     public void setDateOfPayment(Date dateOfPayment) {
         this.dateOfPayment = dateOfPayment;
     }
+
     public String getRentForMonth() {
         return rentForMonth;
     }
+
     public void setRentForMonth(String rentForMonth) {
         this.rentForMonth = rentForMonth;
     }
+
     public Boolean getApprovedByAdmin() {
         return approvedByAdmin;
     }
+
     public void setApprovedByAdmin(Boolean approvedByAdmin) {
         this.approvedByAdmin = approvedByAdmin;
     }

@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 
 public class PropertyImpl implements PropertyIntf {
     Connection connection = JDBC.getConnection();
+
     @Override
     public void addProperty(Property property) {
         try {
@@ -32,17 +33,13 @@ public class PropertyImpl implements PropertyIntf {
                            "LEFT JOIN tenant t ON p.id = t.property_id " +
                            "LEFT JOIN users u ON t.user_id = u.id " +
                            "WHERE p.user_id = ?";
-
             PreparedStatement ps = con.prepareStatement(query);
             ps.setInt(1, LoggedInUser.getUserId());
-
             ResultSet rs = ps.executeQuery();
-
             System.out.println("-------------------------------------------------------------");
             System.out.printf("%-5s %-20s %-15s %-10s %-10s %-20s %-10s %-10s\n",
                 "PID", "Address", "City", "State", "Type", "Tenant Name", "Rent", "Living?");
             System.out.println("-------------------------------------------------------------");
-
             while (rs.next()) {
                 System.out.printf("%-5d %-20s %-15s %-10s %-10s %-20s %-10.2f %-10s\n",
                     rs.getInt("property_id"),
@@ -55,16 +52,12 @@ public class PropertyImpl implements PropertyIntf {
                     rs.getBoolean("is_currently_living_there") ? "Yes" : "No"
                 );
             }
-
             rs.close();
             ps.close();
         } catch (Exception e) {
             System.out.println("[ERROR: Failed to fetch property-tenant details] " + e.getMessage());
         }
     }
-
-
-
 
     @Override
     public boolean checkPropertyBelongsToUser(Integer userId, Integer propertyId) {

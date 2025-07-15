@@ -3,7 +3,6 @@ package com.amdocs.vends.service;
 import com.amdocs.vends.bean.Tenant;
 import com.amdocs.vends.dao.JDBC;
 import com.amdocs.vends.interfaces.TenantIntf;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +34,6 @@ public class TenantImpl implements TenantIntf {
                 "FROM tenant t " +
                 "JOIN users u ON t.user_id = u.id " +
                 "JOIN property p ON t.property_id = p.id";
-
         try (Connection con = JDBC.getConnection();
              PreparedStatement ps = con.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {

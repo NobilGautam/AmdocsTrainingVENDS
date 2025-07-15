@@ -10,7 +10,6 @@ import com.amdocs.vends.utils.enums.PropertyType;
 import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.exceptions.DuplicateUsernameException;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +17,6 @@ import java.sql.Statement;
 import java.util.Scanner;
 
 public class UserImpl implements UserIntf {
-
     Scanner scanner = new Scanner(System.in);
     PropertyImpl propertyService = new PropertyImpl();
     TenantImpl tenantService = new TenantImpl();
@@ -85,11 +83,11 @@ public class UserImpl implements UserIntf {
                     logout();
                     break;
                 default:
-                    System.exit(0);
+                    System.out.println("Invalid choice, Try again!");
+                    showTenantHomepage();
             }
         } while (true);
     }
-
 
     private void addTenant(TenantImpl tenantService) {
         Integer userId;
@@ -204,9 +202,7 @@ public class UserImpl implements UserIntf {
         Connection connection = JDBC.getConnection();
         try {
             Statement stmt = connection.createStatement();
-            
             String name, username, password, phone;
-            
             // Get and validate name
             do {
                 System.out.print("Enter name: ");
@@ -217,7 +213,6 @@ public class UserImpl implements UserIntf {
                 }
                 break;
             } while (true);
-            
             // Get and validate username
             do {
                 System.out.print("Enter username: ");
@@ -228,7 +223,6 @@ public class UserImpl implements UserIntf {
                 }
                 break;
             } while (true);
-            
             // Get and validate password
             do {
                 System.out.print("Enter password: ");
@@ -243,7 +237,6 @@ public class UserImpl implements UserIntf {
                 }
                 break;
             } while (true);
-            
             // Get and validate phone number
             do {
                 System.out.print("Enter phone number: ");
@@ -258,13 +251,11 @@ public class UserImpl implements UserIntf {
                 }
                 break;
             } while (true);
-            
             // Trim all inputs
             name = name.trim();
             username = username.trim();
             password = password.trim();
             phone = phone.trim();
-            
             String role = Role.ADMIN.getValue();
             String hashedPassword = PasswordUtil.hashPassword(password);
             PreparedStatement ps = connection.prepareStatement(
@@ -291,9 +282,8 @@ public class UserImpl implements UserIntf {
     @Override
     public boolean login() {
         boolean successfulLogin = false;
-        
         String username, password;
-        
+        Connection connection = JDBC.getConnection();
         // Get and validate username
         do {
             System.out.print("Enter username: ");
@@ -304,7 +294,6 @@ public class UserImpl implements UserIntf {
             }
             break;
         } while (true);
-        
         // Get and validate password
         do {
             System.out.print("Enter password: ");
@@ -315,43 +304,34 @@ public class UserImpl implements UserIntf {
             }
             break;
         } while (true);
-        
         // Trim inputs
         username = username.trim();
         password = password.trim();
-
-        Connection connection = JDBC.getConnection();
-
         try {
             String query = "SELECT * FROM users WHERE username = ?";
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
                 String hashedInput = PasswordUtil.hashPassword(password);
                 String storedHash = rs.getString("password_hash");
-
                 if (hashedInput.equals(storedHash)) {
                     System.out.println("[Login Successful]");
                     successfulLogin = true;
                     LoggedInUser.setUserId(Integer.parseInt(rs.getString("id")));
                     LoggedInUser.setName(rs.getString("name"));
                     LoggedInUser.setRole(rs.getString("role").toUpperCase());
-
                     if (rs.getBoolean("first_login") && LoggedInUser.getRole() == Role.TENANT) {
                         System.out.println("(First time login)");
                         System.out.print("Enter new password: ");
                         String newPassword = scanner.nextLine();
                         String newHash = PasswordUtil.hashPassword(newPassword);
-
                         PreparedStatement updatePs = connection.prepareStatement(
                                 "UPDATE users SET password_hash=?, first_login=false WHERE username=?");
                         updatePs.setString(1, newHash);
                         updatePs.setString(2, username);
                         updatePs.executeUpdate();
                         updatePs.close();
-
                         System.out.println("[Password Updated Successfully]");
                     }
                 } else {
@@ -360,7 +340,6 @@ public class UserImpl implements UserIntf {
             } else {
                 System.out.println(" User not found.");
             }
-
             rs.close();
             ps.close();
             return successfulLogin;

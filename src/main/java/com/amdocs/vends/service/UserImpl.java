@@ -225,14 +225,14 @@ public class UserImpl implements UserIntf {
             } while (true);
             // Get and validate password
             do {
-                System.out.print("Enter password: ");
+                System.out.print("Enter password (It should contain at least one upper case letter, one digit and one special character and password length should at least be 8): ");
                 password = scanner.nextLine();
                 if (password == null || password.trim().isEmpty()) {
                     System.out.println("Password cannot be blank. Please enter a valid password.");
                     continue;
                 }
-                if (password.length() < 6) {
-                    System.out.println("Password must be at least 6 characters long.");
+                if (password.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$\n")) {
+                    System.out.println("Password should contain at least one upper case letter, one digit and one special character and password length should at least be 8.");
                     continue;
                 }
                 break;

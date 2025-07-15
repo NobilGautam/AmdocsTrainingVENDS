@@ -204,7 +204,6 @@ public class UserImpl implements UserIntf {
         Connection connection = JDBC.getConnection();
         try {
             Statement stmt = connection.createStatement();
-            scanner.nextLine();
             
             String name, username, password, phone;
             

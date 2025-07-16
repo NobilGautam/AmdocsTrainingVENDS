@@ -4,9 +4,10 @@ import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 import java.util.Scanner;
 import com.amdocs.vends.dao.JDBC;
-import com.amdocs.vends.utils.LogUtil;
+import java.util.logging.Logger;
 
 public class MainClass {
+    private static final Logger logger = Logger.getLogger(MainClass.class.getName());
 
 	public static void main(String[] args) {
 	    Scanner scanner = new Scanner(System.in);
@@ -33,11 +34,11 @@ public class MainClass {
 	                userService.signup();
 	                break;
 	            case 3:
-	                LogUtil.info("Thank you for using Vends Smart Rental System!");
+	                logger.info("Thank you for using Vends Smart Rental System!");
 					System.exit(0);
 	                break;
 	            default:
-	                LogUtil.warn("Invalid choice.");
+	                logger.warning("Invalid choice.");
 	        }
 	    }
 	}

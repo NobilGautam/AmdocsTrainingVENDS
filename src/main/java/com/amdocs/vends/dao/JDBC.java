@@ -4,9 +4,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import com.amdocs.vends.utils.LogUtil;
+import java.util.logging.Logger;
 
 public class JDBC {
+    private static final Logger logger = Logger.getLogger(JDBC.class.getName());
     private static Connection connection;
 
     public static Connection getConnection() {
@@ -25,13 +26,13 @@ public class JDBC {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SHOW TABLES");
             if (resultSet.next()) {
-                LogUtil.info("Connection established to database");
+                logger.info("Connection established to database");
             } else {
-                LogUtil.warn("Connection not established to database");
+                logger.warning("Connection not established to database");
             }
             return connection;
         } catch (Exception e) {
-            LogUtil.error(e.getMessage());
+            logger.severe(e.getMessage());
         }
         return null;
     }

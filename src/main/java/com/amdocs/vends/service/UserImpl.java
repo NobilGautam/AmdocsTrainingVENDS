@@ -55,7 +55,9 @@ public class UserImpl implements UserIntf {
                 case 6:
                     logout();
                     break;
-                default: System.exit(0);
+                default:
+                    System.out.println("Invalid choice, Try again!");
+                    showAdminHomepage();
             }
         } while (true);
     }

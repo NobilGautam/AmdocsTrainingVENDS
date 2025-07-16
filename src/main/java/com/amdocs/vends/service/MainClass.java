@@ -4,6 +4,7 @@ import com.amdocs.vends.utils.enums.Role;
 import com.amdocs.vends.utils.singleton.LoggedInUser;
 import java.util.Scanner;
 import com.amdocs.vends.dao.JDBC;
+import com.amdocs.vends.utils.LogUtil;
 
 public class MainClass {
 
@@ -32,11 +33,11 @@ public class MainClass {
 	                userService.signup();
 	                break;
 	            case 3:
-	                System.out.println(" Thank you for using Vends Smart Rental System!");
+	                LogUtil.info("Thank you for using Vends Smart Rental System!");
 					System.exit(0);
 	                break;
 	            default:
-	                System.out.println(" Invalid choice.");
+	                LogUtil.warn("Invalid choice.");
 	        }
 	    }
 	}

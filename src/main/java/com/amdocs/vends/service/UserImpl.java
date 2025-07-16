@@ -15,6 +15,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Scanner;
+import com.amdocs.vends.utils.InputValidator;
+import com.amdocs.vends.utils.LogUtil;
 
 public class UserImpl implements UserIntf {
     Scanner scanner = new Scanner(System.in);
@@ -103,13 +105,33 @@ public class UserImpl implements UserIntf {
         scanner.nextLine();
         System.out.println("Enter name of tenant: ");
         name = scanner.nextLine();
+        if (!InputValidator.isValidUsername(name)) {
+            LogUtil.warn("Name cannot be blank. Please enter a valid name.");
+            showAdminHomepage();
+            return;
+        }
         System.out.println("Enter username of tenant: ");
         username = scanner.nextLine();
+        if (!InputValidator.isValidUsername(username)) {
+            LogUtil.warn("Username cannot be blank. Please enter a valid username.");
+            showAdminHomepage();
+            return;
+        }
         System.out.println("Enter temporary password of tenant: ");
         passwordHash = scanner.nextLine();
+        if (!InputValidator.isValidPassword(passwordHash)) {
+            LogUtil.warn("Password does not meet requirements.");
+            showAdminHomepage();
+            return;
+        }
         passwordHash = PasswordUtil.hashPassword(passwordHash);
         System.out.println("Enter phone number of tenant: ");
         phoneNumber = scanner.nextLine();
+        if (!InputValidator.isValidPhone(phoneNumber)) {
+            LogUtil.warn("Phone number must be exactly 10 digits.");
+            showAdminHomepage();
+            return;
+        }
         User user = new User(role, name, username, passwordHash, true, phoneNumber);
         try {
             userId = addUser(user);
@@ -187,14 +209,14 @@ public class UserImpl implements UserIntf {
             }
             int result = statement.executeUpdate("INSERT INTO users (role, name, username, password_hash, first_login, phone_number) VALUES ('"+user.getRole()+"','"+user.getName()+"','"+user.getUsername()+"','"+user.getPasswordHash()+"',"+user.getFirstLogin()+",'"+user.getPhoneNumber()+"')");
             if (result == 0) {
-                System.out.println("Failed to create user in database!");
+                LogUtil.error("Failed to create user in database!");
             }
             resultSet = statement.executeQuery("SELECT MAX(id) FROM users");
             while(resultSet.next()) {
                 return Integer.parseInt(resultSet.getString(1));
             }
         } catch (Exception e) {
-            System.err.println("Failed to create user in database! Reason: "  + e.getMessage());
+            LogUtil.error("Failed to create user in database! Reason: "  + e.getMessage());
         }
         return -1;
     }
@@ -209,8 +231,8 @@ public class UserImpl implements UserIntf {
             do {
                 System.out.print("Enter name: ");
                 name = scanner.nextLine();
-                if (name == null || name.trim().isEmpty()) {
-                    System.out.println("Name cannot be blank. Please enter a valid name.");
+                if (!InputValidator.isValidUsername(name)) {
+                    LogUtil.warn("Name cannot be blank. Please enter a valid name.");
                     continue;
                 }
                 break;
@@ -219,8 +241,8 @@ public class UserImpl implements UserIntf {
             do {
                 System.out.print("Enter username: ");
                 username = scanner.nextLine();
-                if (username == null || username.trim().isEmpty()) {
-                    System.out.println("Username cannot be blank. Please enter a valid username.");
+                if (!InputValidator.isValidUsername(username)) {
+                    LogUtil.warn("Username cannot be blank. Please enter a valid username.");
                     continue;
                 }
                 break;
@@ -229,12 +251,8 @@ public class UserImpl implements UserIntf {
             do {
                 System.out.print("Enter password (It should contain at least one upper case letter, one digit and one special character and password length should at least be 8): ");
                 password = scanner.nextLine();
-                if (password == null || password.trim().isEmpty()) {
-                    System.out.println("Password cannot be blank. Please enter a valid password.");
-                    continue;
-                }
-                if (password.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$\n")) {
-                    System.out.println("Password should contain at least one upper case letter, one digit and one special character and password length should at least be 8.");
+                if (!InputValidator.isValidPassword(password)) {
+                    LogUtil.warn("Password should contain at least one upper case letter, one digit and one special character and password length should at least be 8.");
                     continue;
                 }
                 break;
@@ -243,12 +261,8 @@ public class UserImpl implements UserIntf {
             do {
                 System.out.print("Enter phone number: ");
                 phone = scanner.nextLine();
-                if (phone == null || phone.trim().isEmpty()) {
-                    System.out.println("Phone number cannot be blank. Please enter a valid phone number.");
-                    continue;
-                }
-                if (phone.length() != 10 || !phone.matches("\\d+")) {
-                    System.out.println("Phone number must be exactly 10 digits.");
+                if (!InputValidator.isValidPhone(phone)) {
+                    LogUtil.warn("Phone number must be exactly 10 digits.");
                     continue;
                 }
                 break;
@@ -269,15 +283,15 @@ public class UserImpl implements UserIntf {
             ps.setString(5, phone);
             int result = ps.executeUpdate();
             if (result > 0) {
-                System.out.println("[Sign Up Successful]");
+                LogUtil.info("[Sign Up Successful]");
             } else {
-                System.out.println(" Failed to sign up.");
+                LogUtil.error("Failed to sign up.");
             }
             ps.close();
             stmt.close();
             MainClass.main(new String[]{});
         } catch (Exception e) {
-            System.out.println("[ERROR] " + e.getMessage());
+            LogUtil.error("[ERROR] " + e.getMessage());
         }
     }
 
@@ -290,8 +304,8 @@ public class UserImpl implements UserIntf {
         do {
             System.out.print("Enter username: ");
             username = scanner.nextLine();
-            if (username == null || username.trim().isEmpty()) {
-                System.out.println("Username cannot be blank. Please enter a valid username.");
+            if (!InputValidator.isValidUsername(username)) {
+                LogUtil.warn("Username cannot be blank. Please enter a valid username.");
                 continue;
             }
             break;
@@ -300,8 +314,8 @@ public class UserImpl implements UserIntf {
         do {
             System.out.print("Enter password: ");
             password = scanner.nextLine();
-            if (password == null || password.trim().isEmpty()) {
-                System.out.println("Password cannot be blank. Please enter a valid password.");
+            if (!InputValidator.isValidPassword(password)) {
+                LogUtil.warn("Password cannot be blank or does not meet requirements.");
                 continue;
             }
             break;
@@ -318,7 +332,7 @@ public class UserImpl implements UserIntf {
                 String hashedInput = PasswordUtil.hashPassword(password);
                 String storedHash = rs.getString("password_hash");
                 if (hashedInput.equals(storedHash)) {
-                    System.out.println("[Login Successful]");
+                    LogUtil.info("[Login Successful]");
                     successfulLogin = true;
                     LoggedInUser.setUserId(Integer.parseInt(rs.getString("id")));
                     LoggedInUser.setName(rs.getString("name"));
@@ -334,19 +348,19 @@ public class UserImpl implements UserIntf {
                         updatePs.setString(2, username);
                         updatePs.executeUpdate();
                         updatePs.close();
-                        System.out.println("[Password Updated Successfully]");
+                        LogUtil.info("[Password Updated Successfully]");
                     }
                 } else {
-                    System.out.println(" Incorrect password.");
+                    LogUtil.warn("Incorrect password.");
                 }
             } else {
-                System.out.println(" User not found.");
+                LogUtil.warn("User not found.");
             }
             rs.close();
             ps.close();
             return successfulLogin;
         } catch (Exception e) {
-            System.out.println("[ERROR] " + e.getMessage());
+            LogUtil.error("[ERROR] " + e.getMessage());
         }
         return successfulLogin;
     }

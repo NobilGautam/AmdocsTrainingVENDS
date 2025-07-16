@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import com.amdocs.vends.utils.LogUtil;
 
 public class JDBC {
     private static Connection connection;
@@ -24,13 +25,13 @@ public class JDBC {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SHOW TABLES");
             if (resultSet.next()) {
-                System.out.println("[LOG: Connection established to database]");
+                LogUtil.info("Connection established to database");
             } else {
-                System.out.println("[LOG: Connection not established to database]");
+                LogUtil.warn("Connection not established to database");
             }
             return connection;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            LogUtil.error(e.getMessage());
         }
         return null;
     }
